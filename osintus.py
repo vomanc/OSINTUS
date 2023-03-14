@@ -1,7 +1,7 @@
-''' OSINT tool
+""" OSINT tool
     author: @vomanc
     version 1.1
-'''
+"""
 import argparse
 import pprint
 import logging
@@ -10,7 +10,7 @@ import checkers
 
 
 def init_logger():
-    ''' Set logger '''
+    """ Set logger """
     logger.setLevel(logging.DEBUG)
     handler = logging.FileHandler(filename='Osintus.log', mode='a')
     filt = [
@@ -25,7 +25,7 @@ def init_logger():
 
 
 def check_tokens():
-    ''' Checking for tokens '''
+    """ Checking for tokens """
     alert = '[!] You have not added a token for'
     if len(IPINFO_TOKEN) == 0:
         print(f'{alert} IPINFO_TOKEN')
@@ -36,73 +36,73 @@ def check_tokens():
 
 
 def argument_parser():
-    ''' Setting options for the program  '''
+    """ Setting options for the program  """
     parser = argparse.ArgumentParser(
-        prog = f'Osintus, version: {VERSION}',
-        description = 'OSINT',
-        add_help = True
+        prog=f'Osintus, version: {VERSION}',
+        description='OSINT',
+        add_help=True
     )
     parser.add_argument(
         '-ip',
-        type = str,
-        help = 'Search for IP information [-ip: 1.1.1.1]'
+        type=str,
+        help='Search for IP information [-ip: 1.1.1.1]'
     )
     parser.add_argument(
         '-ipv',
-        type = str,
-        help = 'Virus Total, get information about ip addres [-ipv 1.1.1.1]'
+        type=str,
+        help='Virus Total, get information about ip addres [-ipv 1.1.1.1]'
     )
     parser.add_argument(
         '-d',
-        type = str,
-        help = 'Dearch for information about a domain [-d example.com]'
+        type=str,
+        help='Dearch for information about a domain [-d example.com]'
     )
     parser.add_argument(
         '-url',
-        type = str,
-        help = 'Virus Total, get a URL analysis report [-url example.com]'
+        type=str,
+        help='Virus Total, get a URL analysis report [-url example.com]'
     )
     parser.add_argument(
         '-mac',
-        type = str,
-        help = 'Identify device by mac address [-mac ff:ff:ff:ff:ff:ff]'
+        type=str,
+        help='Identify device by mac address [-mac ff:ff:ff:ff:ff:ff]'
     )
     parser.add_argument(
         '-tcp',
-        type = str,
-        help = 'TCP check [-tcp example.com]'
+        type=str,
+        help='TCP check [-tcp example.com]'
     )
     parser.add_argument(
         '-udp',
-        type = str,
-        help = 'UDP check [-udp example.com]'
+        type=str,
+        help='UDP check [-udp example.com]'
     )
     parser.add_argument(
         '-dns',
-        type = str,
-        help = '[-dns example.com]'
+        type=str,
+        help='[-dns example.com]'
     )
     parser.add_argument(
         '-p',
-        type = str,
-        help = 'Send ping [-p 1.1.1.1]'
+        type=str,
+        help='Send ping [-p 1.1.1.1]'
     )
     parser.add_argument(
         '-http',
-        type = str,
-        help = 'HTTP check [-c example.com]'
+        type=str,
+        help='HTTP check [-c example.com]'
     )
     parser.add_argument(
         '-v', '-version',
-        action = 'version', version = f'Osintus, version: {VERSION}',
-        help = 'Print version number'
+        action='version', version=f'Osintus, version: {VERSION}',
+        help='Print version number'
     )
 
     return parser
 
 
 def main(parser):
-    ''' Main function that starts the program '''
+    """ Main function that starts the program """
     args = parser.parse_args()
     alert = '[!]Invalid request'
 

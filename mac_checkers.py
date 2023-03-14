@@ -1,4 +1,4 @@
-'''Check mac address geolocation'''
+"""Check mac address geolocation"""
 import urllib.request
 import urllib.parse
 import json
@@ -6,7 +6,7 @@ from extension import COMBAIN_TKEN
 
 
 def mac_geolocation_1(bssid):
-    ''' check mac metiod 1'''
+    """ check mac metiod 1"""
     headers = {'Accept': 'application/json'}
     url = f'http://api.mylnikov.org/geolocation/wifi?v=1.1&data=open&bssid={bssid}'
     req = urllib.request.Request(url, headers=headers)
@@ -20,7 +20,7 @@ def mac_geolocation_1(bssid):
 
 
 def mac_geolocation_2(bssid):
-    ''' check mac metiod 2'''
+    """ check mac method 2"""
     url = f'https://apiv2.combain.com?key={COMBAIN_TKEN}'
     headers = {'Content-Type': 'application/json'}
     data = {

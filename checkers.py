@@ -1,4 +1,4 @@
-''' These are scripts that check by ip, mac, domain'''
+""" These are scripts that check by ip, mac, domain"""
 import urllib.request
 import json
 import time
@@ -7,7 +7,7 @@ import mac_checkers
 
 
 def ip_info(ip_add):
-    ''' Check ip in ipinfo.io api '''
+    """ Check ip in ipinfo.io api """
     req = urllib.request.Request(f'https://ipinfo.io/widget/{ip_add}')
     req.add_header('Authorization', f'Bearer {IPINFO_TOKEN}')
     req.add_header('Accept', 'application/json')
@@ -22,7 +22,7 @@ def ip_info(ip_add):
 
 
 def check_host(method, my_host):
-    ''' Country names '''
+    """ Country names """
 
     def countryes(i):
         return {'ae': 'UAE, Dubai',
@@ -82,7 +82,7 @@ def check_host(method, my_host):
 
 
 def mac_info(mac_add):
-    ''' check mac in api.macaddress.io api '''
+    """ check mac in api.macaddress.io api """
     url = 'https://api.macaddress.io/v1?apiKey=at_LrqIc08FBOoDEsOZpGaZOIOk5UmWN&output=json&search='
     req = urllib.request.Request(url + mac_add)
     req.add_header('Accept', '*/*')
@@ -104,9 +104,9 @@ def mac_info(mac_add):
 
 
 class VirusTotal():
-    ''' To connect to api Virus Total '''
+    """ To connect to api Virus Total """
     def __init__(self, *args):
-        ''' Check ip in Virus Total api '''
+        """ Check ip in Virus Total api """
         self.headers = {
             "accept": "application/json",
             "x-apikey": VIRUSTOTAL_TOKEN,
@@ -126,7 +126,7 @@ class VirusTotal():
 
     @classmethod
     def filter_warn(cls, analysis_results):
-        ''' Filter, shows only danger warnings '''
+        """ Filter, shows only danger warnings """
         sec_alert = {}
         for i in analysis_results.items():
             results = list(i)[1]['result']
@@ -135,7 +135,7 @@ class VirusTotal():
         return sec_alert
 
     def for_domain_and_ip(self):
-        ''' Outputs only common fields for requests domains and ip '''
+        """ Outputs only common fields for requests domains and ip """
         response = self.response['data']['attributes']
         sec_alert = self.filter_warn(response['last_analysis_results'])
         data = [{
@@ -146,7 +146,7 @@ class VirusTotal():
         return response, data
 
     def domain(self):
-        ''' Domain info '''
+        """ Domain info """
         response, data = self.for_domain_and_ip()
         results = [{
             "Last DNS records": response['last_dns_records'],
@@ -156,7 +156,7 @@ class VirusTotal():
         return [*results, *data]
 
     def ip_addresses(self):
-        ''' IP info '''
+        """ IP info """
         response, data = self.for_domain_and_ip()
         additionally = response['last_https_certificate']
         results = [{
@@ -168,7 +168,7 @@ class VirusTotal():
         return [*results, *data]
 
     def urls_check(self):
-        ''' Check url '''
+        """ Check url """
         results_link = self.response['data']['links']['self']
         req = urllib.request.Request(results_link, headers=self.headers)
         with urllib.request.urlopen(req) as response:
