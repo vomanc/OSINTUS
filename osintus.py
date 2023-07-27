@@ -1,11 +1,11 @@
-""" OSINT tool
-    author: @vomanc
-    version 1.1
-"""
+# OSINT tool
+# author: @vomanc
+# version 2.0
 import argparse
 import pprint
 import logging
 from extension import BANNER, IPINFO_TOKEN, VIRUSTOTAL_TOKEN, COMBAIN_TKEN
+from mac_checkers import MacAddress
 import checkers
 
 
@@ -28,11 +28,12 @@ def check_tokens():
     """ Checking for tokens """
     alert = '[!] You have not added a token for'
     if len(IPINFO_TOKEN) == 0:
-        print(f'{alert} IPINFO_TOKEN')
+        return f'{alert} IPINFO_TOKEN'
     if len(VIRUSTOTAL_TOKEN) == 0:
-        print(f'{alert} VIRUSTOTAL_TOKEN')
+        return f'{alert} VIRUSTOTAL_TOKEN'
     if len(COMBAIN_TKEN) == 0:
-        print(f'{alert} COMBAIN_TKEN')
+        return f'{alert} COMBAIN_TKEN'
+    return True
 
 
 def argument_parser():
@@ -40,110 +41,154 @@ def argument_parser():
     parser = argparse.ArgumentParser(
         prog=f'Osintus, version: {VERSION}',
         description='OSINT',
-        add_help=True
     )
     parser.add_argument(
         '-ip',
         type=str,
-        help='Search for IP information [-ip: 1.1.1.1]'
+        metavar='',
+        help='Search for IP information (-ip: 1.1.1.1)'
     )
     parser.add_argument(
         '-ipv',
         type=str,
-        help='Virus Total, get information about ip addres [-ipv 1.1.1.1]'
+        metavar='',
+        help='Virus Total, get information about ip addres (-ipv 1.1.1.1)'
     )
     parser.add_argument(
         '-d',
         type=str,
-        help='Dearch for information about a domain [-d example.com]'
+        metavar='',
+        help='Dearch for information about a domain (-d example.com)'
     )
     parser.add_argument(
         '-url',
         type=str,
-        help='Virus Total, get a URL analysis report [-url example.com]'
+        metavar='',
+        help='Virus Total, get a URL analysis report (-url example.com)'
     )
     parser.add_argument(
         '-mac',
         type=str,
-        help='Identify device by mac address [-mac ff:ff:ff:ff:ff:ff]'
+        metavar='',
+        help='Identify device by mac address (-mac ff:ff:ff:ff:ff:ff)'
     )
     parser.add_argument(
         '-tcp',
         type=str,
-        help='TCP check [-tcp example.com]'
+        metavar='',
+        help='TCP check (-tcp example.com)'
     )
     parser.add_argument(
         '-udp',
         type=str,
-        help='UDP check [-udp example.com]'
+        metavar='',
+        help='UDP check (-udp example.com)'
     )
     parser.add_argument(
         '-dns',
         type=str,
-        help='[-dns example.com]'
+        metavar='',
+        help='(-dns example.com)'
     )
     parser.add_argument(
-        '-p',
+        '-p', '-ping',
         type=str,
-        help='Send ping [-p 1.1.1.1]'
+        metavar='',
+        help='Send ping (-p 1.1.1.1)'
     )
     parser.add_argument(
         '-http',
+        metavar='',
         type=str,
-        help='HTTP check [-c example.com]'
+        help='HTTP check (-c example.com)'
+    )
+    parser.add_argument(
+        '-hash',
+        metavar='',
+        type=str,
+        help='Search for a hash (-hash 5b89935c5f65f0433f754863de828044)',
+    )
+    parser.add_argument(
+        '-f',
+        type=str,
+        metavar='PATH {--passwd }',
+        help='Analyse suspicious files (-f /home/kali/test.txt). '
+             'If it is a password protected file enter a arg {--passwd}'
+    )
+    parser.add_argument(
+        '--passwd',
+        type=str,
+        metavar='',
+        help='Password for files {--passwd my_password}'
     )
     parser.add_argument(
         '-v', '-version',
         action='version', version=f'Osintus, version: {VERSION}',
         help='Print version number'
     )
+    return parser.parse_args()
 
-    return parser
 
-
-def main(parser):
+def main(vals):
     """ Main function that starts the program """
-    args = parser.parse_args()
-    alert = '[!]Invalid request'
+    res = None
+    if vals.ip:
+        res = checkers.IpInfo(vals.ip)
+        res = res.check_ip()
+        print(res)
+        res = None
+    elif vals.ipv:
+        vtapi = checkers.VirusTotal(f'ip_addresses/{vals.ipv}')
+        res = vtapi.check()
+    elif vals.d:
+        vtapi = checkers.VirusTotal(f'domains/{vals.d}')
+        res = vtapi.check()
+    elif vals.url:
+        vtapi = checkers.VirusTotal('urls', f"url={vals.url}".encode('utf-8'))
+        res = vtapi.post_data()
+    elif vals.hash:
+        vtapi = checkers.VirusTotal(f'files/{vals.hash}')
+        res = vtapi.check()
+    elif vals.f:
+        vtapi = checkers.VirusTotal('files', vals.f)
+        res = vtapi.post_data(vals.passwd)
+        if res is None:
+            print('[!] There must be exactly one file !')
+    elif vals.mac:
+        mac_addr = MacAddress(vals.mac)
+        res = mac_addr.checker()
+    elif vals.tcp:
+        query = checkers.HostAvailability('tcp', vals.tcp)
+        res = query.check()
+    elif vals.udp:
+        query = checkers.HostAvailability('udp', vals.udp)
+        res = query.check()
+    elif vals.dns:
+        query = checkers.HostAvailability('dns', vals.dns)
+        res = query.check()
+    elif vals.p:
+        query = checkers.HostAvailability('ping', vals.p)
+        res = query.check()
+    elif vals.http:
+        query = checkers.HostAvailability('http', vals.http)
+        res = query.check()
 
-    if args.ip is not None:
-        print(checkers.ip_info(args.ip))
-    elif args.ipv is not None:
-        vtapi = checkers.VirusTotal(f'ip_addresses/{args.ipv}')
-        ip_check = vtapi.ip_addresses() if vtapi.response is not False else alert
-        pprint.pprint(ip_check)
-    elif args.d is not None:
-        vtapi = checkers.VirusTotal(f'domains/{args.d}')
-        domain = vtapi.domain() if vtapi.response is not False else alert
-        pprint.pprint(domain)
-    elif args.url is not None:
-        vtapi = checkers.VirusTotal('urls', args.url)
-        url = vtapi.urls_check() if vtapi.response is not False else alert
-        pprint.pprint(url)
-    elif args.mac is not None:
-        pprint.pprint(checkers.mac_info(args.mac))
-    elif args.tcp is not None:
-        pprint.pprint(checkers.check_host('tcp', args.tcp))
-    elif args.udp is not None:
-        pprint.pprint(checkers.check_host('udp', args.udp))
-    elif args.dns is not None:
-        pprint.pprint(checkers.check_host('dns', args.dns))
-    elif args.p is not None:
-        pprint.pprint(checkers.check_host('ping', args.p))
-    elif args.http is not None:
-        pprint.pprint(checkers.check_host('http', args.http))
+    if res:
+        pprint.pp(res)
 
 
 if __name__ == "__main__":
-    VERSION = '1.1'
+    VERSION = '2.0'
     logger = logging.getLogger('app')
     print(BANNER)
     init_logger()
     logger.debug('start')
     logger.debug('Successfully wrote')
-    check_tokens()
-
     try:
-        main(argument_parser())
+        token_status = check_tokens()
+        if token_status is True:
+            main(argument_parser())
+        else:
+            print(token_status)
     except Exception:
         logger.exception("Error message")

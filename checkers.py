@@ -1,183 +1,173 @@
 """ These are scripts that check by ip, mac, domain"""
-import urllib.request
 import json
 import time
-from extension import IPINFO_TOKEN, VIRUSTOTAL_TOKEN, UESR_AGENT
-import mac_checkers
+import secrets
+from extension import IPINFO_TOKEN, VIRUSTOTAL_TOKEN
+from inquiries import Queryus
 
 
-def ip_info(ip_add):
+class IpInfo:
     """ Check ip in ipinfo.io api """
-    req = urllib.request.Request(f'https://ipinfo.io/widget/{ip_add}')
-    req.add_header('Authorization', f'Bearer {IPINFO_TOKEN}')
-    req.add_header('Accept', 'application/json')
-    req.add_header('Referer', 'https://ipinfo.io/')
+    __slots__ = ('url', '__headers')
 
-    try:
-        with urllib.request.urlopen(req, timeout=30) as response:
-            resp = response.read().decode('utf-8')
-    except urllib.error.HTTPError:
-        resp = '[!] Enter correct ip address'
-    return resp
-
-
-def check_host(method, my_host):
-    """ Country names """
-
-    def countryes(i):
-        return {'ae': 'UAE, Dubai',
-            'at': 'Austria',
-            'br': 'Brazil',
-            'bg': 'Bulgaria',
-            'cz': 'Czechia',
-            'fi': 'Finland',
-            'fr': 'France',
-            'de': 'Germany',
-            'hk': 'Hong Kong',
-            'in': 'India',
-            'ir': 'Iran',
-            'il': 'Israel',
-            'it': 'Italy',
-            'kz': 'Kazakhstan',
-            'lt': 'Lithuania',
-            'md': 'Moldova',
-            'nl': 'Netherlands',
-            'pl': 'Poland',
-            'pt': 'Portugal',
-            'ru': 'Russia',
-            'rs': 'Serbia',
-            'ch': 'Switzerland',
-            'th': 'Thailand',
-            'tr': 'Turkey',
-            'ua': 'Ukraine',
-            'uk': 'UK',
-            'us': 'USA'
-            }.get(i)
-
-
-    def request_check_host(url):
-        req = urllib.request.Request(url)
-        req.add_header('Accept', 'application/json')
-        req.add_header('User-Agent', UESR_AGENT)
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            return resp.read().decode('utf-8')
-
-    url = f'https://check-host.net/check-{method}?host={my_host}/&max_nodes=MAX_NODES'
-    request_id = request_check_host(url)
-    request_id = json.loads(request_id)['request_id']
-    print('[*] Checking in progress, please wait 5 seconds ...')
-    time.sleep(5)
-    url = f'https://check-host.net/check-result/{request_id}'
-    response = request_check_host(url)
-    response = json.loads(response)
-    result_list = []
-    for country_abbr in response:
-        country = countryes(country_abbr[0:2])
-        try:
-            status = response[country_abbr][0]
-            result_list.append({country: status})
-        except (TypeError, KeyError):
-            result_list.append({country: 'None'})
-    return result_list
-
-
-def mac_info(mac_add):
-    """ check mac in api.macaddress.io api """
-    url = 'https://api.macaddress.io/v1?apiKey=at_LrqIc08FBOoDEsOZpGaZOIOk5UmWN&output=json&search='
-    req = urllib.request.Request(url + mac_add)
-    req.add_header('Accept', '*/*')
-    results = []
-    try:
-        with urllib.request.urlopen(req, timeout=10) as response:
-            resp = response.read(1024).decode('utf-8')
-            vendor = resp.replace(',"', ',\n"')
-            results.append(json.loads(vendor))
-    except urllib.error.HTTPError:
-        return '[!]Invalid request'
-    res1 = mac_checkers.mac_geolocation_1(mac_add)
-    res2 = mac_checkers.mac_geolocation_2(mac_add)
-    if res1 is not None:
-        results.append(res1)
-    if res2 is not None:
-        results.append(res2)
-    return results
-
-
-class VirusTotal():
-    """ To connect to api Virus Total """
-    def __init__(self, *args):
-        """ Check ip in Virus Total api """
-        self.headers = {
-            "accept": "application/json",
-            "x-apikey": VIRUSTOTAL_TOKEN,
-            "content-type": "application/x-www-form-urlencoded"
+    def __init__(self, ip_add):
+        self.url = f'https://ipinfo.io/widget/{ip_add}'
+        self.__headers = {
+            'Authorization': f'Bearer {IPINFO_TOKEN}',
+            'Accept': 'application/json',
+            'Referer': 'https://ipinfo.io/'
         }
-        data = None if len(args) == 1 else f"url={args[1]}".encode('utf-8')
-        req = urllib.request.Request(
-            f'https://www.virustotal.com/api/v3/{args[0]}',
-            data=data, headers=self.headers
-            )
-        try:
-            with urllib.request.urlopen(req, timeout=30) as response:
-                response = response.read().decode('utf-8')
-                self.response = json.loads(response)
-        except urllib.error.HTTPError:
-            self.response = False
+
+    def check_ip(self):
+        """ Sending a request to the API """
+        query = Queryus()
+        response = query.send(self.url, header=self.__headers)
+        return response.decode()
+
+
+class HostAvailability:
+    """ Checking availability in different countries of the PING, DNS, TCP, UDP connect """
+    __slots__ = ('url', '__headers', 'method', 'my_host', 'query')
+
+    def __init__(self, method, my_host):
+        self.method = method
+        self.my_host = my_host
+        self.url = 'https://check-host.net/check-'
+        self.__headers = {
+            'Accept': 'application/json',
+        }
+        self.query = Queryus()
+
+    def check(self):
+        """ Gets the final result """
+        req_id = self.request_id()
+        time.sleep(10)
+        url = f'{self.url}result/{req_id}'
+        response = self.query.send(url, header=self.__headers)
+        response = self.__my_filter(response)
+        return response
+
+    def request_id(self):
+        """ sends a request for validation and gets the request ID """
+        url = f'{self.url}{self.method}?host={self.my_host}/&max_nodes=MAX_NODES'
+        response = self.query.send(url, header=self.__headers)
+        request_id = json.loads(response.decode('utf-8'))['request_id']
+        print('[*] Checking in progress, please wait 5 seconds ...')
+        return request_id
 
     @classmethod
-    def filter_warn(cls, analysis_results):
-        """ Filter, shows only danger warnings """
-        sec_alert = {}
-        for i in analysis_results.items():
-            results = list(i)[1]['result']
-            if results not in {'clean', 'unrated'}:
-                sec_alert.update({i[0]: i[1]["result"]})
-        return sec_alert
+    def __my_filter(cls, response):
+        """ Filter countries """
+        from extension import countries
 
-    def for_domain_and_ip(self):
-        """ Outputs only common fields for requests domains and ip """
-        response = self.response['data']['attributes']
-        sec_alert = self.filter_warn(response['last_analysis_results'])
-        data = [{
-            "Whois": response['whois'].replace('\r\n', ''),
-            "Last analysis stats": response['last_analysis_stats'],
-            "Security": sec_alert
-            }]
-        return response, data
+        response = json.loads(response.decode('utf-8'))
+        result_list = []
+        for country_abbr in response:
+            country = countries.get(country_abbr[0:2])
+            country = country if country else country_abbr[0:2]
 
-    def domain(self):
-        """ Domain info """
-        response, data = self.for_domain_and_ip()
-        results = [{
-            "Last DNS records": response['last_dns_records'],
-            "Registrar": response['registrar'],
-            "Categories": response['categories']
-            }]
-        return [*results, *data]
+            status = response[country_abbr][0]
+            result_list.append({country: status})
+        return tuple(result_list)
 
-    def ip_addresses(self):
-        """ IP info """
-        response, data = self.for_domain_and_ip()
-        additionally = response['last_https_certificate']
-        results = [{
-            "Owner": response['as_owner'],
-            "Subject": additionally['subject'],
-            "Issuer": additionally['issuer'],
-            "Subject alternative name": additionally['extensions']['subject_alternative_name']
-        }]
-        return [*results, *data]
 
-    def urls_check(self):
-        """ Check url """
-        results_link = self.response['data']['links']['self']
-        req = urllib.request.Request(results_link, headers=self.headers)
-        with urllib.request.urlopen(req) as response:
-            resp = response.read().decode('utf-8')
-            resp = json.loads(resp)
-        main = resp['data']['attributes']
-        sec_alert = self.filter_warn(main['results'])
-        return [{
-            "Stats": main['stats'],
-            "Status": main['status'],
-            "Security": sec_alert
-            }]
+class VirusTotal:
+    """ To connect to api Virus Total """
+    __slots__ = ('data', 'command', 'url')
+
+    __headers = {
+            "accept": "application/json",
+            "x-apikey": VIRUSTOTAL_TOKEN,
+        }
+
+    def __init__(self, *args):
+        """ Created vars """
+        self.data = None if len(args) <= 1 else args[1]
+        self.command = args[0]
+        self.url = f'https://www.virustotal.com/api/v3/{self.command}'
+
+    def check(self):
+        """ Submits a request for verification """
+        query = Queryus()
+        response = query.send(self.url, data=self.data, header=self.__headers)
+        if response:
+            response = json.loads(response.decode())
+            return self.my_filter(response)
+        return None
+
+    def my_filter(self, response):
+        """ Deletion of unnecessary fields from API response"""
+        if self.command.split('/')[0] in {'ip_addresses', 'domains', 'files'} \
+                and self.data is None:
+            del response['data']['links']
+            del response['data']['attributes']['last_analysis_results']
+            last_analysis_stats = response['data']['attributes']['last_analysis_stats']
+            del response['data']['attributes']['last_analysis_stats']
+            response.update({'last_analysis_stats': last_analysis_stats})
+            return response
+        return response['data']['links']['self']
+
+    def send_file(self, password):
+        """ Create token, headers, and send file for checking """
+        boundary = secrets.token_hex(20)
+        headers = {"Content-Type": f"multipart/form-data; boundary={boundary}"}
+        boundary = boundary.encode()
+        headers.update(self.__headers)
+        data = self.__multipart_file(boundary, self.data, password)
+        query = Queryus()
+        response = query.send(self.url, data=data, header=headers)
+        if response:
+            response = json.loads(response.decode())
+            return self.my_filter(response)
+        return None
+
+    def post_data(self, password=None):
+        """ Sending data via API: if file or url """
+        if self.command == 'urls':
+            response = self.check()
+        else:
+            response = self.send_file(password)
+        if response:
+            return self.__check_results(response)
+        return None
+
+    @classmethod
+    def __check_results(cls, url):
+        """ Check post data """
+        print('\n[*] It is scanning, please wait ...')
+        time.sleep(10)
+        query = Queryus()
+        response = query.send(url, header=cls.__headers)
+        response = json.loads(response.decode())
+        if response is None:
+            return None
+        while response['data']['attributes']['status'] == 'queued':
+            print('[*] Wait, not verified yet ...')
+            time.sleep(10)
+            response = query.send(url, header=cls.__headers)
+            response = json.loads(response.decode())
+
+        del response['data']['attributes']['results']
+        del response['data']['links']
+        del response['data']['id']
+        return response
+
+    @classmethod
+    def __multipart_file(cls, boundary, data, password):
+        """ Create multipart data """
+        with open(data, "rb") as my_file:
+            my_file = my_file.read()
+        data = [
+            b'--', boundary, b'\nContent-Disposition: form-data; name="file"; filename="',
+            data.encode(), b'"\nContent-Type: text/x-python\n\n', my_file, b'\n--', boundary,
+            b'--']
+
+        if password:
+            password = password.encode()
+            password = (b'--', boundary, b'\nContent-Disposition: form-data; name="password"\n\n',
+                        password, b'\n')
+
+            password = b''.join(password)
+            data = b''.join(data)
+            return password + data
+        return b''.join(data)

@@ -1,12 +1,18 @@
-# OSINTUS version 1.1
+# OSINTUS version 2.0
 ## Description
-This application allows you to get various information about the IP, URL, MAC address, domain, check access to the resource in different countries by http, ping, tcp/udp,dns
+This application allows you to get various information about the IP, URL, MAC address, domain, check access to the 
+resource in different countries by http, ping, tcp/udp,dns. Checks suspicious files for malicious code.
+Tested on Ubuntu 22.04, Kali 2023.2, python 3.10+.
+
+OSINTUS is written entirely in Python, with no dependencies to external libraries.
 
 ## Features
 * Determine the manufacturer and location by mac address
 * Get an IP address report and information about him
+* Get information about a file by hash
+* Retrieve information about a file
 * Detects dangerous IP addresses
-* Scan URL
+* Scan URL and files
 ___
 ### Installation method and run
     git clone https://github.com/vomanc/OSINTUS.git
@@ -24,6 +30,8 @@ ___
 	python3 osintus.py -ipv 1.1.1.1
 	python3 osintus.py -udp example.com
 	python3 osintus.py -url example.com
+	python3 osintus.py -f /home/test_file.js
+    python3 osintus.py -hash dbf9ab052e342522ca1...
 ___
 ## Author: @vomanc
 ___
