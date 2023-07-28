@@ -1,5 +1,5 @@
 """ Banner, user-agents used in the script and API keys """
-BANNER = '\nOSINTUS, version: 2.0\n'
+BANNER = '\nOSINTUS, version: 2.1\n'
 UESR_AGENT = 'Mozilla/5.0 (Windows NT 10.0; rv:98.0) Gecko/20100101 Firefox/98.0'
 
 # MY API KEYS

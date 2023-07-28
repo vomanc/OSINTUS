@@ -55,8 +55,8 @@ class HostAvailability:
         print('[*] Checking in progress, please wait 5 seconds ...')
         return request_id
 
-    @classmethod
-    def __my_filter(cls, response):
+    @staticmethod
+    def __my_filter(response):
         """ Filter countries """
         from extension import countries
 
@@ -152,8 +152,8 @@ class VirusTotal:
         del response['data']['id']
         return response
 
-    @classmethod
-    def __multipart_file(cls, boundary, data, password):
+    @staticmethod
+    def __multipart_file(boundary, data, password):
         """ Create multipart data """
         with open(data, "rb") as my_file:
             my_file = my_file.read()

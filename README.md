@@ -1,4 +1,4 @@
-# OSINTUS version 2.0
+# OSINTUS version 2.1
 ## Description
 This application allows you to get various information about the IP, URL, MAC address, domain, check access to the 
 resource in different countries by http, ping, tcp/udp,dns. Checks suspicious files for malicious code.
