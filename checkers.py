@@ -22,7 +22,10 @@ class IpInfo:
         """ Sending a request to the API """
         query = Queryus()
         response = query.send(self.url, header=self.__headers)
-        return response.decode()
+        try:
+            return response.decode()
+        except AttributeError:
+            return 'checkers.py >> check_ip function returned: {response}'
 
 
 class HostAvailability:
@@ -66,7 +69,7 @@ class HostAvailability:
             country = countries.get(country_abbr[0:2])
             country = country if country else country_abbr[0:2]
 
-            status = response[country_abbr][0]
+            status = response[country_abbr][0]#
             result_list.append({country: status})
         return tuple(result_list)
 

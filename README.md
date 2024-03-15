@@ -1,4 +1,4 @@
-# OSINTUS version 2.1
+# OSINTUS version 2.2
 ## Description
 This application allows you to get various information about the IP, URL, MAC address, domain, check access to the 
 resource in different countries by http, ping, tcp/udp,dns. Checks suspicious files for malicious code.
@@ -53,3 +53,4 @@ ___
 ### WebMoney
 * WMZ: Z826298065674
 * WME: E786709266824
+

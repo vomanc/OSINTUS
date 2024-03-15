@@ -1,6 +1,7 @@
 # OSINT tool
 # author: @vomanc
-# version 2.0
+# version 2.2
+# https://github.com/vomanc/OSINTUS
 import pprint
 import logging
 from extension import BANNER, IPINFO_TOKEN, VIRUSTOTAL_TOKEN, COMBAIN_TKEN
@@ -68,6 +69,8 @@ def main(args):
         case 'tcp' | 'udp' | 'dns' | 'ping' | 'http':
             query = checkers.HostAvailability(args[0], args[1])
             res = query.check()
+        case _:
+            raise TypeError("osintus >> main >> match.case: Not a point we support")
 
     if res:
         pprint.pp(res)

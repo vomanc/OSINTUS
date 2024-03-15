@@ -2,7 +2,7 @@
 import argparse
 
 
-VERSION = '2.1'
+VERSION = '2.2'
 parser = argparse.ArgumentParser(
     prog=f'Osintus, version: {VERSION}',
     description='OSINT',
@@ -20,16 +20,16 @@ parser.add_argument(
     help='Virus Total, get information about ip addres (-ipv 1.1.1.1)'
 )
 parser.add_argument(
-    '-d',
-    type=str,
-    metavar='',
-    help='Dearch for information about a domain (-d example.com)'
-)
-parser.add_argument(
     '-url',
     type=str,
     metavar='',
     help='Virus Total, get a URL analysis report (-url example.com)'
+)
+parser.add_argument(
+    '-d',
+    type=str,
+    metavar='',
+    help='Dearch for information about a domain (-d example.com)'
 )
 parser.add_argument(
     '-mac',
@@ -41,25 +41,25 @@ parser.add_argument(
     '-tcp',
     type=str,
     metavar='',
-    help='TCP check (-tcp example.com)'
+    help='TCP check (-tcp example.com[:PORT])'
 )
 parser.add_argument(
     '-udp',
     type=str,
     metavar='',
-    help='UDP check (-udp example.com)'
+    help='UDP check (-udp example.com[:PORT])'
+)
+parser.add_argument(
+    '-ping',
+    type=str,
+    metavar='',
+    help='Send ping (-ping 1.1.1.1[:PORT])'
 )
 parser.add_argument(
     '-dns',
     type=str,
     metavar='',
     help='(-dns example.com)'
-)
-parser.add_argument(
-    '-ping',
-    type=str,
-    metavar='',
-    help='Send ping (-ping 1.1.1.1)'
 )
 parser.add_argument(
     '-http',
